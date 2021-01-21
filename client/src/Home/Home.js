@@ -6,12 +6,14 @@ import { green } from '@material-ui/core/colors';
 import CheckIcon from '@material-ui/icons/Check';
 import VOTE from '../assets/logo.jpg';
 import Copyright from '../Footer/copyright';
+import axios from 'axios';
+import { Button } from 'reactstrap';
+
 import {
     Typography,
     Box,
     Grid,
     ButtonGroup,
-    Button
 } from '@material-ui/core';
 import "../Styles/App.css";
 
@@ -75,7 +77,7 @@ const useStyles = (theme) => ({
     },
 
     footer: {
-        padding:  20,
+        // padding:  20,
         [theme.breakpoints.down('sm')]: {
             display: 'none'
         }
@@ -107,7 +109,6 @@ class CircularIntegration extends Component {
         successIn: false,
         successOut: false,
     }
-
     
     handleClockIn = () => {
         if (!this.state.clockIn) {
@@ -116,7 +117,19 @@ class CircularIntegration extends Component {
                 clockIn: true
             });
 
-            this.myRef.current = window.setTimeout(() => {
+            this.myRef.current = window.setTimeout( async () => {
+                const { clockIn } = this.state;
+                await axios.post('/api/mac', {
+                    clockIn, 
+                })
+
+                .then(response => { 
+                    console.log(response.data.doc)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                });
+
                 this.setState({
                     successIn: true,
                     clockIn: false
@@ -129,7 +142,7 @@ class CircularIntegration extends Component {
         if (!this.state.clockOut) {
             this.setState({
                 successOut: false,
-                clockOut: true
+                clockOut: true,
             });
 
             this.myRef.current = window.setTimeout(() => {
@@ -208,12 +221,10 @@ class CircularIntegration extends Component {
 
                                 <div className={classes.wrapper}>
                                     <Button
-                                        variant="contained"
-                                        // color="primary"
-                                        className={buttonClassnameTwo}
+                                        variant="contained"                                        className={buttonClassnameTwo}
                                         disabled={this.state.clockOut}
                                         onClick={this.handleClockOut}
-                                    >
+                                        >
                                         {this.state.successOut ? <CheckIcon /> : null} Clock Out
                                     </Button>
                                     {

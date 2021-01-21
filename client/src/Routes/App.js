@@ -8,9 +8,6 @@ import {
 import { createBrowserHistory as history} from 'history';
 
 import Home from '../Home/Home';
-import Login from '../Login';
-import Dashboard from '../Dashboard/Dashboard';
-import PrivateRoute from "../Routes/PrivateRoute";
 import app from "../base";
 // Material UI
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core';
@@ -94,16 +91,6 @@ const routes = [
     path: '/',
     component: Home,
   }, 
-
-  {
-    path: '/login',
-    component: Login,
-  },
-
-  // {
-  //   path: './vote',
-  //   component: Dashboard,
-  // }
 ];
 
 class App extends Component {
@@ -119,7 +106,7 @@ class App extends Component {
         });
       } else {
         this.setState({
-          authenticated: false,
+          authenticated: true,
           currentUser: null,
           loading: false
         });
@@ -127,9 +114,10 @@ class App extends Component {
     });
   }
   render () {
-    const { authenticated } = this.state;
+    // const { authenticated } = this.state;
     const routeComponents = routes.map(({path, component}, key) => 
-      <Route exact path={path} component={component} key={key}  />);
+    <Route exact path={path} component={component} key={key}  />);
+    
     return (
       <MuiThemeProvider theme={THEME}>
         <Router history={history}>
@@ -138,11 +126,6 @@ class App extends Component {
               <div className="page">
                 <Switch>
                   {routeComponents}
-                  <PrivateRoute
-                    path="/vote"
-                    component={Dashboard}
-                    authenticated={authenticated}
-                  /> 
                 </Switch>
               </div> 
             </div>
