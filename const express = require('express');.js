@@ -30,42 +30,38 @@ if(process.env.NODE_ENV === 'production'){
 }
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  databaseURL: process.env.REACT_APP_DATABASE_URL,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+    apiKey: "AIzaSyDAG1RvwN85zACzAXG7qVG76avN6cTV5uo",
+    authDomain: "taibah-ef8a9.firebaseapp.com",
+    databaseURL: "https://taibah-ef8a9.firebaseio.com",
+    projectId: "taibah-ef8a9",
+    storageBucket: "taibah-ef8a9.appspot.com",
+    messagingSenderId: "818871054377",
+    appId: "1:818871054377:web:ff5bd40205df0897c8ac38",
+    measurementId: "G-SQ5NYJD1CM"
 };
 
 myData.initializeApp(firebaseConfig);
 
-const db =  myData.firestore();
-
 app.get('/api/reg', (req, res) => {
+
    (async () => {
       try {
-        macaddress.one((err, mac) => {
-         db.collection('clockIn').where('uid', '==', mac).limit(1).get()
-          .then((snapshot) => {
-            snapshot.forEach((doc) => {
-              console.log('mac address', ':', doc.id, 'exists');
-              console.log('Name', '=>', doc.data().name);
-            });
+          const noteSnapshot = await  myData.firestore().collection('clockIn').get();
+          const notes = [];
+          noteSnapshot.forEach(function (doc) {
+            notes.push({
+            id: doc.id,
+            data: doc.data() });
 
-            console.log(res.json(doc.data()))
-            return res.status(200).send(doc.data());
-          })
-          .catch((err) => {
-            console.log('Error getting documents', err);
-          }); 
-        });
+          });
+          res.json(notes)
+          console.log(res.json(notes))
+          return res.status(200).send(notes);
       } catch (error) {
           console.log(error);
           return res.status(500).send(error);
       }
     })();
-
 
 
 
@@ -105,26 +101,12 @@ app.post('/api/mac', (req, res) => {
     macaddress.one((err, mac) => {
       if (mac) {
         console.log('mac addresses: ', mac);
-        console.log('The user clicked the button');
-        console.log(req.body)
-        console.log('mac addresses: ', mac);
-        db.collection('clockIn').where('uid', '==', mac).limit(1).get()
-          .then((snapshot) => {
-            snapshot.forEach((doc) => {
-              console.log('mac address', ':', doc.id, 'exists');
-              console.log('Name', '=>', doc.data().name);
-            });
-
-            console.log(res.json(doc.data()))
-            res.status(200).send(doc.data());
-          })
-          .catch((err) => {
-            console.log('Error getting documents', err);
-          }); 
       } else {
         console.log('mac addresses is not valid ')
       }  
     });
+    console.log('The user clicked the button');
+    console.log(req.body)
   } else {
     console.log('No button click!')
   }
@@ -141,17 +123,17 @@ app.post('/api/mac', (req, res) => {
       host: 'smtp.gmail.com',
       auth: {
         user: 'testing@gmail.com',
-        pass: '&&a'
+        pass: 'testing'
       }
     }));
 
     const now = new Date();
 
     let mailOptions = {
-      from: 'r.namwanza@skyllaconnect.com',
-      to: 'namwanzaronald4@gmail.com',
+      from: 'testing@gmail.com',
+      to: 'testing@gmail.com',
       subject: "Today's Attendence Register",
-      text: "Teacher's Name: " + ' ' + `${}` + `\r\n` + 
+      text: "Teacher's Name: " + ' ' + `${req.body.name}` + `\r\n` + 
           'Day of the week: ' + ' ' + `${date.format(now, 'dddd')}` + `\r\n` + 
           'Date: ' + ' ' + `${date.format(now, 'DD-MM-YYYY')}` + `\r\n` +
           'Time of Arrival: ' + ' ' +  `${date.format(now, 'HH:mm')}`

@@ -53,7 +53,6 @@ const useStyles = (theme) => ({
         textAlign: 'center',
         color: theme.palette.text.secondary,
     },
-
     text: {
         margin: 60,
         textAlign: 'center',
@@ -77,11 +76,11 @@ const useStyles = (theme) => ({
     },
 
     footer: {
-        // padding:  20,
         [theme.breakpoints.down('sm')]: {
             display: 'none'
         }
     },
+
 
     footerMob: {
         [theme.breakpoints.up('md')]: {
@@ -108,25 +107,47 @@ class CircularIntegration extends Component {
         clockOut: false,
         successIn: false,
         successOut: false,
+        response: '',
+        post: '',
+        responseToPost: '',
     }
-    
+
+    componentDidMount() {
+        this.callApi()
+        .then(res => this.setState({ response: res.express }))
+        .catch(err => console.log(err));
+
+    }
+
+
+    callApi = async () => {
+        const response = await fetch('/api/reg');
+        const body = await response.json();
+        if (response.status !== 200) throw Error(body.message);
+        
+        console.log('Response =>', body);
+        return body;
+    };
     handleClockIn = () => {
         if (!this.state.clockIn) {
             this.setState({
                 successIn: false,
-                clockIn: true
+                clockIn: true,
             });
 
             this.myRef.current = window.setTimeout( async () => {
-                const { clockIn } = this.state;
+                const { clockIn, response } = this.state;
                 await axios.post('/api/mac', {
-                    clockIn, 
-                })
+                    clockIn,
+                    response,
 
-                .then(response => { 
-                    console.log(response.data.doc)
                 })
-                .catch(error => {
+                .then(async response => { 
+                        console.log(response.data);
+                        const body = await response.text();
+                        this.setState({ responseToPost: body });
+                })
+                .catch(error => { 
                     console.log(error.response)
                 });
 
@@ -159,6 +180,7 @@ class CircularIntegration extends Component {
           clearTimeout( this.myRef.current);
         };
     };
+
     
     render () {
         const { classes } = this.props;
@@ -166,6 +188,7 @@ class CircularIntegration extends Component {
         const buttonClassname = clsx({
             [classes.buttonsuccessIn]: this.state.successIn,
         });
+
 
         const buttonClassnameTwo = clsx({
             [classes.buttonsuccessIn]: this.state.successOut,
