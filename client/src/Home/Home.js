@@ -8,6 +8,7 @@ import VOTE from '../assets/logo.jpg';
 import Copyright from '../Footer/copyright';
 import axios from 'axios';
 import { Button } from 'reactstrap';
+import app from 'firebase/app'
 
 import {
     Typography,
@@ -100,6 +101,7 @@ class CircularIntegration extends Component {
     constructor(props) {
         super(props);
         this.myRef = React.createRef();
+        this.db = app.firestore();
     }
 
     state = {
@@ -111,76 +113,119 @@ class CircularIntegration extends Component {
         post: '',
         responseToPost: '',
     }
-
+    
     componentDidMount() {
         this.callApi()
-        .then(res => this.setState({ response: res.express }))
+        .then(res => {
+            if (res.express) {
+                // console.log('I saw your mac address:', res.express)
+                this.setState({response: res.express})
+            }
+        })
         .catch(err => console.log(err));
-
     }
 
-
     callApi = async () => {
-        const response = await fetch('/api/reg');
+        const response = await fetch('/api/hello');
         const body = await response.json();
         if (response.status !== 200) throw Error(body.message);
-        
-        console.log('Response =>', body);
         return body;
     };
-    handleClockIn = () => {
+
+    // Handle user clockin
+    handleClockIn = async () => {
         if (!this.state.clockIn) {
             this.setState({
                 successIn: false,
                 clockIn: true,
             });
 
-            this.myRef.current = window.setTimeout( async () => {
-                const { clockIn, response } = this.state;
-                await axios.post('/api/mac', {
-                    clockIn,
-                    response,
+          
+            this.db.collection('clockIn').where('uid', '==', this.state.response).limit(1).get()
+            .then( async (snapshot) => {
+                snapshot.forEach((doc) => {
+                    this.setState({ 
+                        post: doc.data().name,
+                    })
+                    return doc.data().name;
+                }); 
 
+                const { clockIn, post } = this.state;
+                
+                await axios.post('/api/clockin', {
+                    clockIn,
+                    post,
                 })
                 .then(async response => { 
-                        console.log(response.data);
-                        const body = await response.text();
-                        this.setState({ responseToPost: body });
+                    const body = await response.text();
+                    this.setState({ 
+                        post: body,
+                    });
                 })
                 .catch(error => { 
                     console.log(error.response)
                 });
+            });
 
-                this.setState({
+            this.myRef.current = window.setTimeout( async () => {
+                 this.setState({
                     successIn: true,
                     clockIn: false
-                });
+                })
             }, 2000);
         }
     };
 
-    handleClockOut = () => {
+    // Handle user clock out
+    handleClockOut = async () => {
         if (!this.state.clockOut) {
             this.setState({
                 successOut: false,
                 clockOut: true,
             });
 
-            this.myRef.current = window.setTimeout(() => {
-                this.setState({
+          
+            this.db.collection('clockOut').where('uid', '==', this.state.response).limit(1).get()
+            .then( async (snapshot) => {
+                snapshot.forEach((doc) => {
+                    this.setState({ 
+                        post: doc.data().name,
+                    })
+                    return doc.data().name;
+                }); 
+
+                const { clockOut, post } = this.state;
+                
+                await axios.post('/api/clockout', {
+                    clockOut,
+                    post,
+                })
+                .then(async response => { 
+                    const body = await response.text();
+                    this.setState({ 
+                        post: body,
+                    });
+                })
+                .catch(error => { 
+                    console.log(error.response)
+                });
+            });
+
+            this.myRef.current = window.setTimeout( async () => {
+                 this.setState({
                     successOut: true,
                     clockOut: false
-                });
+                })
             }, 2000);
         }
     };
 
+    
     componentWillMount(){
         return () => {
           clearTimeout( this.myRef.current);
         };
     };
-
     
     render () {
         const { classes } = this.props;
