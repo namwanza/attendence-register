@@ -8,8 +8,6 @@ import VOTE from '../assets/logo.jpg';
 import Copyright from '../Footer/copyright';
 import axios from 'axios';
 import { Button } from 'reactstrap';
-import app from 'firebase/app'
-
 import {
     Typography,
     Box,
@@ -17,6 +15,10 @@ import {
     ButtonGroup,
 } from '@material-ui/core';
 import "../Styles/App.css";
+import details from './details.json';
+import firebase from "firebase/app";
+import "firebase/auth";
+import Clock from 'react-live-clock';
 
 const useStyles = (theme) => ({
     root: {
@@ -84,6 +86,10 @@ const useStyles = (theme) => ({
 
 
     footerMob: {
+        padding: 40,
+        paddingBottom: 50,
+        width: '70%',
+        margin: 'auto',
         [theme.breakpoints.up('md')]: {
             display: 'none'
         }
@@ -101,7 +107,6 @@ class CircularIntegration extends Component {
     constructor(props) {
         super(props);
         this.myRef = React.createRef();
-        this.db = app.firestore();
     }
 
     state = {
@@ -112,124 +117,116 @@ class CircularIntegration extends Component {
         response: '',
         post: '',
         responseToPost: '',
+        clock: new Date()
     }
     
     componentDidMount() {
-        this.callApi()
-        .then(res => {
-            if (res.express) {
-                // console.log('I saw your mac address:', res.express)
-                this.setState({response: res.express})
-            }
-        })
-        .catch(err => console.log(err));
+        return () => {
+          clearTimeout( this.myRef.current);
+        };
     }
 
-    callApi = async () => {
-        const response = await fetch('/api/hello');
-        const body = await response.json();
-        if (response.status !== 200) throw Error(body.message);
-        return body;
-    };
-
     // Handle user clockin
-    handleClockIn = async () => {
+    handleClockIn = () => {
         if (!this.state.clockIn) {
             this.setState({
                 successIn: false,
                 clockIn: true,
             });
 
-          
-            this.db.collection('clockIn').where('uid', '==', this.state.response).limit(1).get()
-            .then( async (snapshot) => {
-                snapshot.forEach((doc) => {
-                    this.setState({ 
-                        post: doc.data().name,
+            let user = firebase.auth().currentUser;
+        
+            if (user != null) {
+                this.myRef.current = window.setTimeout(() => {
+                    const display = details.filter(idKey => idKey.email === user.email);
+                    const showName = display.map(num => num.name);
+                        
+                    // console.log(showName.toString());
+
+                    this.setState({
+                        post: showName.toString(),
                     })
-                    return doc.data().name;
-                }); 
 
-                const { clockIn, post } = this.state;
-                
-                await axios.post('/api/clockin', {
-                    clockIn,
-                    post,
-                })
-                .then(async response => { 
-                    const body = await response.text();
-                    this.setState({ 
-                        post: body,
+                    const { clockIn, post } = this.state;
+                    
+                    
+                    axios.post('/api/clockin', {
+                        clockIn,
+                        post,
+                    })
+                    .then(async response => { 
+                        const body = await response.text();
+                        this.setState({ 
+                            post: body,
+                        });
+                    })
+                    .catch(error => { 
+                        console.log(error.response)
                     });
-                })
-                .catch(error => { 
-                    console.log(error.response)
-                });
-            });
 
-            this.myRef.current = window.setTimeout( async () => {
-                 this.setState({
-                    successIn: true,
-                    clockIn: false
-                })
-            }, 2000);
+                    this.setState({
+                        successIn: true,
+                        clockIn: false
+                    })
+                    
+                }, 2000);
+            } else {
+                console.log('User not authenticated')
+            }
         }
     };
 
+
     // Handle user clock out
-    handleClockOut = async () => {
+    handleClockOut = () => {
         if (!this.state.clockOut) {
             this.setState({
                 successOut: false,
                 clockOut: true,
             });
+            let user = firebase.auth().currentUser;
+        
+            if (user != null) {
+                this.myRef.current = window.setTimeout(() => {
+                    const display = details.filter(idKey => idKey.email === user.email);
+                    const showName = display.map(num => num.name);
 
-          
-            this.db.collection('clockOut').where('uid', '==', this.state.response).limit(1).get()
-            .then( async (snapshot) => {
-                snapshot.forEach((doc) => {
-                    this.setState({ 
-                        post: doc.data().name,
+                    this.setState({
+                        post: showName.toString(),
                     })
-                    return doc.data().name;
-                }); 
+                    
 
-                const { clockOut, post } = this.state;
-                
-                await axios.post('/api/clockout', {
-                    clockOut,
-                    post,
-                })
-                .then(async response => { 
-                    const body = await response.text();
-                    this.setState({ 
-                        post: body,
+                    const { clockOut, post } = this.state;
+                    
+                    axios.post('/api/clockout', {
+                        clockOut,
+                        post,
+                    })
+                    .then(async response => { 
+                        const body = await response.text();
+                        this.setState({ 
+                            post: body,
+                        });
+                    })
+                    
+                    .catch(error => { 
+                        console.log(error.response)
                     });
-                })
-                .catch(error => { 
-                    console.log(error.response)
-                });
-            });
-
-            this.myRef.current = window.setTimeout( async () => {
-                 this.setState({
-                    successOut: true,
-                    clockOut: false
-                })
-            }, 2000);
+                
+                    this.setState({
+                        successOut: true,
+                        clockOut: false
+                    })
+                }, 2000);
+            } else {
+                console.log("User is not authenticated !")
+            }
         }
-    };
-
-    
-    componentWillMount(){
-        return () => {
-          clearTimeout( this.myRef.current);
-        };
     };
     
     render () {
         const { classes } = this.props;
-    
+        
         const buttonClassname = clsx({
             [classes.buttonsuccessIn]: this.state.successIn,
         });
@@ -237,7 +234,7 @@ class CircularIntegration extends Component {
 
         const buttonClassnameTwo = clsx({
             [classes.buttonsuccessIn]: this.state.successOut,
-        });
+        });    
     
         return (
             <div className={classes.root}>
@@ -250,7 +247,7 @@ class CircularIntegration extends Component {
                         </div>
 
                         <div className={classes.text}>
-                            <Typography variant="h2" style={{textShadow: '2px 2px black'}} className={classes.message}>
+                            <Typography variant="h3" style={{textShadow: '2px 2px black'}} className={classes.message}>
                                 Digital Staff Attendance Register
                             </Typography>
                         </div>
@@ -261,6 +258,24 @@ class CircularIntegration extends Component {
                     </Grid>
 
                     <Grid item xs={12} sm={6} className={classes.grid}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginTop: -60,
+                            marginBottom: 40
+                            }}>
+                            <Typography variant="h3" paragraph>
+                                <Clock 
+                                    format="HH:mm:ss" 
+                                    interval={1000} 
+                                    ticking={true} 
+                                    style={{
+                                        color: 'red'
+                                    }}
+                                />
+                            </Typography>
+                        </div>
                         <div className={classes.paper}>
                             <ButtonGroup 
                                 disableElevation 

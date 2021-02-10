@@ -7,7 +7,9 @@ import {
 
 import { createBrowserHistory as history} from 'history';
 
+import Login from '../Login';
 import Home from '../Home/Home';
+import PrivateRoute from "./PrivateRoute";
 import app from "../base";
 // Material UI
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core';
@@ -89,7 +91,7 @@ ScrollTop.propTypes = {
 const routes = [
   {
     path: '/',
-    component: Home,
+    component: Login,
   }, 
 ];
 
@@ -114,10 +116,9 @@ class App extends Component {
     });
   }
   render () {
-    // const { authenticated } = this.state;
+    const { authenticated } = this.state;
     const routeComponents = routes.map(({path, component}, key) => 
-    <Route exact path={path} component={component} key={key}  />);
-    
+      <Route exact path={path} component={component} key={key}  />);
     return (
       <MuiThemeProvider theme={THEME}>
         <Router history={history}>
@@ -126,6 +127,11 @@ class App extends Component {
               <div className="page">
                 <Switch>
                   {routeComponents}
+                  <PrivateRoute
+                    path="/register"
+                    component={Home}
+                    authenticated={authenticated}
+                  /> 
                 </Switch>
               </div> 
             </div>

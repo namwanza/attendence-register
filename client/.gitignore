@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# Ignore cred.json and details.json
+*cred.json
+cred.json
+*details.json
+details.json
+
 # Distribution / packaging
 .Python
 build/

@@ -1,24 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const macaddress = require('macaddress');
 const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
 const date = require('date-and-time');
 const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8800;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// API calls
-app.get('/api/hello', (req, res) => {
-  macaddress.one((err, mac) => {
-    if (mac) {
-      res.send({ express: mac });
-    }
-  });
-});
 
 // Send all clocked in users details to admin's email
 app.post('/api/clockin', (req, res) => {
@@ -27,15 +17,15 @@ app.post('/api/clockin', (req, res) => {
         service: 'gmail',
         host: 'smtp.gmail.com',
         auth: {
-          user: 'test@gmail.com',
-          pass: 'pass'
+          user: 'tissregister@gmail.com',
+          pass: 'Ti55.regist@'
         }
       }));
 
       const now = new Date();
 
       let mailOptions = {
-        from: 'Digital Staff Attendance Register',
+        from: `${req.body.post}`,
         to: 'tissregister@gmail.com',
         subject: `${date.format(now, 'DD-MM-YYYY')}` + ' : ' + "ClockIn - Attendence Register",
         text: "Teacher's Name: " + ' ' + `${req.body.post}` + `\r\n` + 
@@ -63,15 +53,15 @@ app.post('/api/clockout', (req, res) => {
         service: 'gmail',
         host: 'smtp.gmail.com',
         auth: {
-          user: 'test@gmail.com',
-          pass: 'pass'
+          user: 'tissregister@gmail.com',
+          pass: 'Ti55.regist@'
         }
       }));
 
       const now = new Date();
 
       let mailOptions = {
-        from: 'Digital Staff Attendance Register',
+        from: `${req.body.post}`,
         to: 'tissregister@gmail.com',
         subject: `${date.format(now, 'DD-MM-YYYY')}` + ' : ' + "ClockOut - Attendence Register",
         text: "Teacher's Name: " + ' ' + `${req.body.post}` + `\r\n` + 
