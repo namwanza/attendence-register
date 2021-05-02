@@ -17,8 +17,8 @@ app.post('/api/clockin', (req, res) => {
         service: 'gmail',
         host: 'smtp.gmail.com',
         auth: {
-          user: 'tissregister@gmail.com',
-          pass: 'Ti55.regist@'
+            user: 'email@gmail.com',
+            pass: 'pass'
         }
       }));
 
@@ -53,8 +53,8 @@ app.post('/api/clockout', (req, res) => {
         service: 'gmail',
         host: 'smtp.gmail.com',
         auth: {
-          user: 'tissregister@gmail.com',
-          pass: 'Ti55.regist@'
+          user: 'email@gmail.com',
+          pass: 'pass'
         }
       }));
 
